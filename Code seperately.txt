@@ -9,21 +9,41 @@ patient_data <- read.table("data_clinical_patient.txt", header = TRUE, sep = "\t
 #### Read Copy Number Aberrations Data
 cna_data <- read.table("data_cna.txt", header = TRUE, sep = "\t")
 
-#### Match Patient ID
-common_patient_ids <- intersect(rownames(rna_seq), intersect(rownames(cna_data), patient_data$Patient_ID))
+### get the patients IDS 
+patient_ids_patient_data <- unique(patient_data$PATIENT_ID)
 
-#### Filter data based on common patient IDs
-rna_seq <- rna_seq[common_patient_ids, ]
-cna_data <- cna_data[common_patient_ids, ]
-patient_data <- patient_data[patient_data$Patient_ID %in% common_patient_ids, ]
 
-#### check the loaded data 
-head(rna_seq)
-head(cna_data)
-head(patient_data)
+# Extract patient IDs from 'rna_seq' column names (remove the last two characters)
+patient_ids_rna_seq <- substr(colnames(rna_seq), 1, nchar(colnames(rna_seq)) - 2)
 
-#### create metadata
-metadata <- data.frame(
-  Patient_ID = rownames(cna_data),
-  ERBB2_status = ifelse(cna_data > 0, "ERBB2+", "Not ERBB2+")
-)
+# Extract patient IDs from 'cna_data' column names (remove the last two characters)
+patient_ids_cna_data <- substr(colnames(cna_data), 1, nchar(colnames(cna_data)) - 2)
+
+
+# Extract common patient IDs
+common_patient_ids <- intersect(patient_ids_patient_data, patient_ids_rna_seq)
+common_patient_ids <- intersect(common_patient_ids, patient_ids_cna_data)
+
+
+# Filter data based on common patient IDs
+rna_seq <- rna_seq[, colnames(rna_seq) %in% paste0(common_patient_ids, ".01")]
+cna_data <- cna_data[, colnames(cna_data) %in% paste0(common_patient_ids, ".01")]
+patient_data <- patient_data[patient_data$PATIENT_ID %in% common_patient_ids, ]
+----------------------------------------------------------------------------
+
+FOLLOWING THE GUIDE BY TEACHER
+# Change working directory to the folder containing the extracted data
+path <- "C:/Users/Luis Iglesias/Downloads"
+file_name <- "brca_tcga_pan_can_atlas_2018.tar.gz"
+untar(file_name)
+setwd(paste(getwd(), "/brca_tcga_pan_can_atlas_2018", sep = ""))
+
+# Read clinical, RNASeq, and CNA data
+clinical <- read.delim("data_clinical_patient.txt")
+rnaseq <- read.delim("data_mrna_seq_v2_rsem.txt")
+cna <- read.delim("data_cna.txt")
+
+# Remove duplicated genes from RNASeq data
+keep <- !duplicated(rnaseq[, 1])
+rnaseq <- rnaseq[keep, ]
+rownames(rnaseq) <- rnaseq[, 1]
