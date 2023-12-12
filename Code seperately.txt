@@ -1,0 +1,29 @@
+
+
+#### Read RNASeq Data 
+rna_seq <- read.table("data_mrna_seq_v2_rsem.txt", header = TRUE, sep = "\t")
+
+#### Read Patient Data
+patient_data <- read.table("data_clinical_patient.txt", header = TRUE, sep = "\t")
+
+#### Read Copy Number Aberrations Data
+cna_data <- read.table("data_cna.txt", header = TRUE, sep = "\t")
+
+#### Match Patient ID
+common_patient_ids <- intersect(rownames(rna_seq), intersect(rownames(cna_data), patient_data$Patient_ID))
+
+#### Filter data based on common patient IDs
+rna_seq <- rna_seq[common_patient_ids, ]
+cna_data <- cna_data[common_patient_ids, ]
+patient_data <- patient_data[patient_data$Patient_ID %in% common_patient_ids, ]
+
+#### check the loaded data 
+head(rna_seq)
+head(cna_data)
+head(patient_data)
+
+#### create metadata
+metadata <- data.frame(
+  Patient_ID = rownames(cna_data),
+  ERBB2_status = ifelse(cna_data > 0, "ERBB2+", "Not ERBB2+")
+)
