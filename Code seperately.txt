@@ -1,12 +1,24 @@
+# Assignment Script
 
-----------------------------------------------------------------------------
+# Davids Jalisevs, 12/12/2023
 
-FOLLOWING THE GUIDE BY TEACHER
-# Change working directory to the folder containing the extracted data
-path <- "C:/Users/jalis/Desktop"
-file_name <- "brca_tcga_pan_can_atlas_2018.tar.gz"
+# Change working directory.
+setwd("C:/Users/jalis/Downloads")
+path  = "C:/Users/jalis/Downloads" # change this to your own directory
+
+file_name = "brca_tcga_pan_can_atlas_2018.tar.gz"
+
+file.exists("brca_tcga_pan_can_atlas_2018.tar.gz")
+
+# We will first extract the files into folders.
+
 untar(file_name)
-setwd(paste(getwd(), "/brca_tcga_pan_can_atlas_2018", sep = ""))
+
+# change directory to the extracted folders
+
+setwd(paste(getwd() , "/brca_tcga_pan_can_atlas_2018", sep = ""))
+
+# We will use the following files:
 
 # Read clinical, RNASeq, and CNA data
 clinical <- read.delim("data_clinical_patient.txt")
@@ -83,17 +95,91 @@ rna_cna_sub = round(rna_cna_sub)
 
 
 
-
+library(DESeq2)
+###########################################################################
 #Normalising data 
 
 # Create DESeqDataSet from count data
 dds <- DESeqDataSetFromMatrix(countData = rna_cna_sub, colData = meta_erbb2, design = ~ ERBB2Amp)
 
-
 # Run the DESeq normalization steps
 dds <- DESeq(dds)
 
+# Access normalized count data
+normalized_counts <- counts(dds, normalized = TRUE)
+
+#differential expression analysis
+res <- results(dds)
+
+# Filter for significantly differentially expressed genes P value can be adjusted
+sig_genes <- subset(res, padj < 0.05)
 
 
+#top 10 differentially expressed genes ranked by fold change
+top_genes <- head(sig_genes[order(-abs(sig_genes$log2FoldChange)), ], 10)
+
+
+
+
+# Display the results
+print("Differentially Expressed Genes:")
+print(sig_genes)
+
+print("Top 10 Differentially Expressed Genes:")
+print(top_genes)
+
+#######################################################################
+#Pathaways Analysis
+BiocManager::install("org.Hs.eg.db")
+BiocManager::install("AnnotationDbi")
+BiocManager::install("clusterProfiler")
+BiocManager::install("enrichplot")
+
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(enrichplot)
+########################################################################
+#Get the variance stabilised transformed expression values.
+#With the vst values obtain a PCA plot.
+library(ggplot2)
+
+
+# Get the variance-stabilized transformed expression values
+vst_values <- vst(dds)
+
+# Create a PCA plot
+pca <- plotPCA(vst_values, intgroup = "ERBB2Amp", returnData = TRUE)
+percentVar <- round(100 * attr(pca, "percentVar"))
+pca_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = ERBB2Amp)) +
+  geom_point(size = 3) +
+  ggtitle("PCA Plot of VST Values") +
+  theme_minimal() +
+  theme(legend.position = "right") +
+  labs(x = paste0("PC1: ", percentVar[1], "% variance"),
+       y = paste0("PC2: ", percentVar[2], "% variance"))
+
+# Display the PCA plot
+print(pca_plot)
+
+####################################################
+# Assuming you have already loaded the necessary libraries and performed the analysis up to this point
+
+# Perform clustering on vst values
+dist_values <- dist(t(assay(vst_values)))
+cluster_values <- hclust(dist_values)
+cluster_assignment <- cutree(cluster_values, k = <number_of_clusters>)  # Specify the number of clusters
+
+# Create PCA plot with clustering information
+pca_cluster_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = factor(cluster_assignment))) +
+  geom_point(size = 3) +
+  ggtitle("PCA Plot with Clustering") +
+  theme_minimal() +
+  theme(legend.position = "right") +
+  labs(x = paste0("PC1: ", percentVar[1], "% variance"),
+       y = paste0("PC2: ", percentVar[2], "% variance"))
+
+# Display the PCA plot with clustering
+print(pca_cluster_plot)
 
 

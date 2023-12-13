@@ -162,5 +162,50 @@ pca_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = ERBB2Amp)) +
 # Display the PCA plot
 print(pca_plot)
 
+####################################################
+# Perform clustering on vst values (using a subset of data)
+subset_dist_values <- dist(t(assay(vst_values[, 1:10])))  # Adjust the subset size as needed
+subset_cluster_values <- hclust(subset_dist_values)
+subset_cluster_assignment <- cutree(subset_cluster_values, k = 4)  # Specify the number of clusters
 
+# Create PCA plot with clustering information
+pca_cluster_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = factor(subset_cluster_assignment))) +
+  geom_point(size = 3) +
+  ggtitle("PCA Plot with Clustering") +
+  theme_minimal() +
+  theme(legend.position = "right") +
+  labs(x = paste0("PC1: ", percentVar[1], "% variance"),
+       y = paste0("PC2: ", percentVar[2], "% variance"))
+
+# Display the PCA plot with clustering
+print(pca_cluster_plot)
+####################################################
+# Install the survival package if not already installed
+if (!requireNamespace("survival", quietly = TRUE)) {
+  install.packages("survival")
+}
+# Load the survival package
+library(survival)
+
+# Assuming Overall.Survival..Months. and Overall.Survival.Status are columns in your clinical data
+surv_object <- with(clinical[5:nrow(clinical), ], {
+  surv_time <- as.numeric(ifelse(is.na(as.character(Overall.Survival..Months.)), NA, as.character(Overall.Survival..Months.)))
+  surv_event <- as.numeric(ifelse(as.character(Overall.Survival.Status) == "1", 1, 0))
+  Surv(time = surv_time, event = surv_event)
+})
+
+# Ensure that there are non-zero observations
+surv_object <- surv_object[surv_object$time > 0]
+
+# Filter vst values for matching IDs
+matching_ids <- rownames(vst_values)
+vst_data <- assay(vst_values)[matching_ids %in% matching_ids, ]
+
+# Ensure the number of rows matches
+if (length(surv_object$time) != nrow(vst_data)) {
+  stop("Number of rows in surv_object and vst_data do not match.")
+}
+
+# Combine survival object with vst values
+surv_data <- data.frame(Survival = surv_object, vst_data)
 
