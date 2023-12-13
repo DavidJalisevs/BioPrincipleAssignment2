@@ -1,39 +1,9 @@
 
-
-#### Read RNASeq Data 
-rna_seq <- read.table("data_mrna_seq_v2_rsem.txt", header = TRUE, sep = "\t")
-
-#### Read Patient Data
-patient_data <- read.table("data_clinical_patient.txt", header = TRUE, sep = "\t")
-
-#### Read Copy Number Aberrations Data
-cna_data <- read.table("data_cna.txt", header = TRUE, sep = "\t")
-
-### get the patients IDS 
-patient_ids_patient_data <- unique(patient_data$PATIENT_ID)
-
-
-# Extract patient IDs from 'rna_seq' column names (remove the last two characters)
-patient_ids_rna_seq <- substr(colnames(rna_seq), 1, nchar(colnames(rna_seq)) - 2)
-
-# Extract patient IDs from 'cna_data' column names (remove the last two characters)
-patient_ids_cna_data <- substr(colnames(cna_data), 1, nchar(colnames(cna_data)) - 2)
-
-
-# Extract common patient IDs
-common_patient_ids <- intersect(patient_ids_patient_data, patient_ids_rna_seq)
-common_patient_ids <- intersect(common_patient_ids, patient_ids_cna_data)
-
-
-# Filter data based on common patient IDs
-rna_seq <- rna_seq[, colnames(rna_seq) %in% paste0(common_patient_ids, ".01")]
-cna_data <- cna_data[, colnames(cna_data) %in% paste0(common_patient_ids, ".01")]
-patient_data <- patient_data[patient_data$PATIENT_ID %in% common_patient_ids, ]
 ----------------------------------------------------------------------------
 
 FOLLOWING THE GUIDE BY TEACHER
 # Change working directory to the folder containing the extracted data
-path <- "C:/Users/Luis Iglesias/Downloads"
+path <- "C:/Users/jalis/Desktop"
 file_name <- "brca_tcga_pan_can_atlas_2018.tar.gz"
 untar(file_name)
 setwd(paste(getwd(), "/brca_tcga_pan_can_atlas_2018", sep = ""))
@@ -47,3 +17,83 @@ cna <- read.delim("data_cna.txt")
 keep <- !duplicated(rnaseq[, 1])
 rnaseq <- rnaseq[keep, ]
 rownames(rnaseq) <- rnaseq[, 1]
+
+# Find ERBB2 in CNA data and plot histogram
+erbb2_indx <- which(cna[, 1] == 'ERBB2')
+hist(as.numeric(cna[erbb2_indx, -c(1, 2)]))
+
+# Match patients in RNASeq to patients in CNA
+rna_cna_id <- which(is.element(colnames(rnaseq[, -c(1, 2)]), colnames(cna[, -c(1, 2)])))
+rna_cna_sub <- rnaseq[, 2 + rna_cna_id]
+
+
+
+# Check patients in RNASeq subset are in CNA
+no_pats_in_rna_cna_sub_and_cna <- sum(is.element(colnames(rnaseq[, 2 + rna_cna_id]), colnames(cna[, -c(1, 2)])))
+sanity_check <- no_pats_in_rna_cna_sub_and_cna == dim(rna_cna_sub)[2]
+
+
+# Pre-allocate memory for ERBB2
+
+meta_erbb2 = matrix(0,length(rna_cna_id),1)
+for (i in 1:length(rna_cna_id)){
+  # access the colnames of i
+  col_i = colnames(rna_cna_sub)[i]
+  # get the index in cna for the same patient
+  col_cna = which(colnames(cna)==col_i)
+  # store if they're amplified.
+  meta_erbb2[i,] = 1*(cna[erbb2_indx,col_cna]>0)
+  
+}
+
+
+
+# simple checks to make sure. 
+
+col_i = colnames(rna_cna_sub)[1]
+
+col_cna = which(colnames(cna)==col_i)
+
+# sanity check
+
+(cna[erbb2_indx,col_cna]>0) == meta_erbb2[1,1]
+
+# see now if a positive meta_erbb2 is amplified.
+
+pos_example = which(meta_erbb2==1)[1]
+
+
+col_i = colnames(rna_cna_sub)[pos_example]
+
+col_cna = which(colnames(cna)==col_i)
+
+# sanity check
+
+(cna[erbb2_indx,col_cna]>0) == meta_erbb2[pos_example,1]
+
+# botch checks should print true.
+
+# We will add a title to the metadata.
+
+colnames(meta_erbb2) = 'ERBB2Amp'
+
+# transform into integers
+
+rna_cna_sub = round(rna_cna_sub)
+
+
+
+
+#Normalising data 
+
+# Create DESeqDataSet from count data
+dds <- DESeqDataSetFromMatrix(countData = rna_cna_sub, colData = meta_erbb2, design = ~ ERBB2Amp)
+
+
+# Run the DESeq normalization steps
+dds <- DESeq(dds)
+
+
+
+
+
