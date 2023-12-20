@@ -221,5 +221,5 @@ print(pca_plot)
 #
 ####################################################
 
-
+# Optional: Cluster the data and show in PCA
 
