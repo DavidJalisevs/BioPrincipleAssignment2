@@ -2,6 +2,7 @@
 
 # Davids Jalisevs, 12/12/2023
 
+####################### Step 1
 # Change working directory.
 setwd("C:/Users/jalis/Downloads")
 path  = "C:/Users/jalis/Downloads" # change this to your own directory
@@ -12,11 +13,15 @@ file.exists("brca_tcga_pan_can_atlas_2018.tar.gz")
 
 # We will first extract the files into folders.
 
+####################### Step 2
+
 untar(file_name)
 
 # change directory to the extracted folders
 
 setwd(paste(getwd() , "/brca_tcga_pan_can_atlas_2018", sep = ""))
+
+####################### Step 3 and Step 4 and Step 5
 
 # We will use the following files:
 
@@ -34,6 +39,8 @@ rownames(rnaseq) <- rnaseq[, 1]
 erbb2_indx <- which(cna[, 1] == 'ERBB2')
 hist(as.numeric(cna[erbb2_indx, -c(1, 2)]))
 
+####################### Step 6
+
 # Match patients in RNASeq to patients in CNA
 rna_cna_id <- which(is.element(colnames(rnaseq[, -c(1, 2)]), colnames(cna[, -c(1, 2)])))
 rna_cna_sub <- rnaseq[, 2 + rna_cna_id]
@@ -44,6 +51,7 @@ rna_cna_sub <- rnaseq[, 2 + rna_cna_id]
 no_pats_in_rna_cna_sub_and_cna <- sum(is.element(colnames(rnaseq[, 2 + rna_cna_id]), colnames(cna[, -c(1, 2)])))
 sanity_check <- no_pats_in_rna_cna_sub_and_cna == dim(rna_cna_sub)[2]
 
+####################### Step 7
 
 # Pre-allocate memory for ERBB2
 
@@ -95,9 +103,10 @@ rna_cna_sub = round(rna_cna_sub)
 
 
 
+
 library(DESeq2)
 ###########################################################################
-#Normalising data 
+# Step 8 : Normalising data 
 
 # Create DESeqDataSet from count data
 dds <- DESeqDataSetFromMatrix(countData = rna_cna_sub, colData = meta_erbb2, design = ~ ERBB2Amp)
@@ -111,15 +120,14 @@ normalized_counts <- counts(dds, normalized = TRUE)
 #differential expression analysis
 res <- results(dds)
 
+#########################################################################
+# Step 9: Obtaining Differentially expressed Genes
+
 # Filter for significantly differentially expressed genes P value can be adjusted
 sig_genes <- subset(res, padj < 0.05)
 
-
 #top 10 differentially expressed genes ranked by fold change
 top_genes <- head(sig_genes[order(-abs(sig_genes$log2FoldChange)), ], 10)
-
-
-
 
 # Display the results
 print("Differentially Expressed Genes:")
@@ -129,7 +137,7 @@ print("Top 10 Differentially Expressed Genes:")
 print(top_genes)
 
 #######################################################################
-#Pathaways Analysis
+# Step 10 :Pathaways Analysis
 BiocManager::install("org.Hs.eg.db")
 BiocManager::install("AnnotationDbi")
 BiocManager::install("clusterProfiler")
@@ -138,16 +146,45 @@ BiocManager::install("enrichplot")
 library(clusterProfiler)
 library(org.Hs.eg.db)
 library(AnnotationDbi)
+
 library(enrichplot)
-########################################################################
-#Get the variance stabilised transformed expression values.
+
+
+# Assuming you have 'sig_genes' containing differentially expressed genes
+de_genes <- sig_genes$gene_symbol
+
+# Perform pathway enrichment analysis using clusterProfiler
+library(clusterProfiler)
+
+# Convert gene symbols to Entrez IDs using org.Hs.eg.db
+gene_ids <- bitr(de_genes, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = org.Hs.eg.db)
+
+# Perform pathway enrichment analysis using KEGG
+enrich_result <- enrichKEGG(gene         = gene_ids$ENTREZID,
+                            organism     = 'hsa',
+                            keyType      = 'kegg',
+                            pAdjustMethod = 'BH', # You can choose the adjustment method
+                            qvalueCutoff  = 0.05)  # Adjust this cutoff as needed
+
+# Display the results
+print(enrich_result)
+
+# Plot the results
+dotplot(enrich_result, showCategory = 15)  # Adjust 'showCategory' based on your preference
+
+
+
+a########################################################################
+# Step 11 :Get the variance stabilised transformed expression values.
 #With the vst values obtain a PCA plot.
+
 library(ggplot2)
 
 
 # Get the variance-stabilized transformed expression values
 vst_values <- vst(dds)
 
+#Step 12 : With VST valuse create a PCA plot 
 # Create a PCA plot
 pca <- plotPCA(vst_values, intgroup = "ERBB2Amp", returnData = TRUE)
 percentVar <- round(100 * attr(pca, "percentVar"))
@@ -162,6 +199,12 @@ pca_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = ERBB2Amp)) +
 # Display the PCA plot
 print(pca_plot)
 
+
+
+####################################################
+#
+# Optional For EXTRA MARKS attempts
+#
 ####################################################
 # Perform clustering on vst values (using a subset of data)
 subset_dist_values <- dist(t(assay(vst_values[, 1:10])))  # Adjust the subset size as needed
@@ -208,4 +251,6 @@ if (length(surv_object$time) != nrow(vst_data)) {
 
 # Combine survival object with vst values
 surv_data <- data.frame(Survival = surv_object, vst_data)
+
+
 
