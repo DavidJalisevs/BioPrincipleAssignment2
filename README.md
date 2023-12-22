@@ -30,11 +30,6 @@ The dataset used for this analysis can be found [here](https://www.cbioportal.or
 5. **PCA Plot:**
    - Generating a PCA plot using the variance-stabilized transformed expression values.
 
-6. **Optional Analysis (Additional Marks):**
-   - Gene Expression Cluster
-   - Cox Regression Model with DE Genes
-   - Lasso Cross-Validation for Gene Selection in Survival Prediction
-
 ## Code Structure
 
 The primary code for this assignment is available in the `Assignment_Code.R` file. Additionally, the complete code is provided in a separate text document named `Assignment_Code_Full.txt`.
@@ -46,11 +41,14 @@ For a detailed analysis report, please refer to the report document.
 ## Instructions for Reproduction
 
 1. Download the dataset from the provided link.
-2. Untar the folder and extract the files.
-3. Execute the R code in `Assignment_Code.R` for step-by-step analysis.
+2. Set your OWN directory name in here(line 7-8):
+setwd("C:/Users/jalis/Downloads")
+path  = "C:/Users/jalis/Downloads"
+3. Untar the folder and extract the files.
+4. Execute the R code in `Assignment_Code.R` for step-by-step analysis.
 
-Feel free to explore the code and adapt it to your needs!
+Feel free to explore the code 
 
 ---
 
-*Note: Detailed analysis results and additional discussions are available in the full report document.*
+*Note: Detailed analysis results are in the full report document.*
