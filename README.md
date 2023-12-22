@@ -38,6 +38,10 @@ The primary code for this assignment is available in the `Assignment_Code.R` fil
 
 For a detailed analysis report, please refer to the report document.
 
+## References
+
+References can be accessed in a reference txt file.
+
 ## Instructions for Reproduction
 
 1. Download the dataset from the provided link.

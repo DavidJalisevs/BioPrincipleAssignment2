@@ -1,0 +1,20 @@
+
+
+References:
+
+1. Love, M.I., Huber, W., Anders, S. (2014). Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. 
+*Genome Biology, 15*(12), 550. - https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8
+
+2. Yu, G., Wang, L.G., Han, Y., He, Q.Y. (2012). clusterProfiler: an R package for comparing biological themes among gene clusters. 
+*OMICS: A Journal of Integrative Biology, 16*(5), 284-287. https://www.liebertpub.com/doi/10.1089/omi.2011.0118
+
+3. Carlson, M. (2022). org.Hs.eg.db: Genome wide annotation for Human. R package version 3.15.0.
+https://bioconductor.org/packages/release/data/annotation/html/org.Hs.eg.db.html
+
+4. Gentleman, R.C., Carey, V.J., Bates, D.M., et al. (2004). Bioconductor: open software development for computational biology and bioinformatics.
+ *Genome Biology, 5*(10), R80. https://genomebiology.biomedcentral.com/articles/10.1186/gb-2004-5-10-r80
+
+5. Subramanian, A., Tamayo, P., Mootha, V.K., et al. (2005). Gene set enrichment analysis: A knowledge-based approach for interpreting genome-wide expression profiles.
+ *Proceedings of the National Academy of Sciences, https://www.pnas.org/doi/full/10.1073/pnas.0506580102
+
+These references cover the methodologies and packages used in the analysis, providing a foundation for the code's approach and interpretation. 
