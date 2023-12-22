@@ -5,7 +5,7 @@
 ####################### Step 1
 # Change working directory.
 setwd("C:/Users/jalis/Downloads")
-path  = "C:/Users/jalis/Downloads" # change this to your own directory
+path  = "C:/Users/jalis/Downloads" # change this to your own directory !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 file_name = "brca_tcga_pan_can_atlas_2018.tar.gz"
 
@@ -140,7 +140,7 @@ print(top_genes)
 # Step 10 :Pathaways Analysis
 BiocManager::install("org.Hs.eg.db")
 BiocManager::install("AnnotationDbi")
-aBiocManager::install("clusterProfiler")
+BiocManager::install("clusterProfiler")
 BiocManager::install("enrichplot")
 
 library(clusterProfiler)
@@ -149,7 +149,7 @@ library(AnnotationDbi)
 
 library(enrichplot)
 
-# Assuming you have 'res' containing DESeq2 results
+# Extracting gene names from the results of the differential expression analysis
 de_genes <- rownames(res)
 
 # Perform pathway enrichment analysis using clusterProfiler
@@ -212,5 +212,3 @@ pca_plot <- ggplot(pca, aes(x = PC1, y = PC2, color = ERBB2Amp)) +
 
 # Display the PCA plot
 print(pca_plot)
-
-
