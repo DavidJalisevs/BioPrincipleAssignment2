@@ -5,7 +5,7 @@
 ####################### Step 1
 # Change working directory.
 setwd("C:/Users/jalis/Downloads")
-path  = "C:/Users/jalis/Downloads" # change this to your own directory
+path  = "C:/Users/jalis/Downloads" # change this to your own directory !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 file_name = "brca_tcga_pan_can_atlas_2018.tar.gz"
 
